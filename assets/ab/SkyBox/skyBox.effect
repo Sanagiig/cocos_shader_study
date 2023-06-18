@@ -1,0 +1,66 @@
+// Effect Syntax Guide: https://docs.cocos.com/creator/manual/zh/shader/index.html
+
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes:
+    - vert: sky-vs:vert
+      frag: sky-fs:frag
+      properties: &props
+        mainTexture:     { value: grey }
+      priority: max - 10
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: true
+}%
+
+
+CCProgram sky-vs %{
+precision highp float;
+#include <legacy/input-standard>
+#include <builtin/uniforms/cc-global>
+#include <legacy/local-batch>
+#include <legacy/input-standard>
+#include <legacy/fog-vs>
+#include <legacy/shadow-map-vs>
+
+out vec3 v_position;
+
+vec4 vert () {
+  StandardVertInput In;
+  CCVertInput(In);
+
+  mat4 matWorld, matWorldIT;
+  CCGetWorldMatrixFull(matWorld, matWorldIT);
+
+  vec4 pos = matWorld * In.position;
+
+  v_position = pos.xyz;
+
+  CC_TRANSFER_FOG(pos);
+  CC_TRANSFER_SHADOW(pos);
+
+  return cc_matProj * (cc_matView * matWorld) * In.position;
+}
+
+}%
+
+CCProgram sky-fs %{
+  precision highp float;
+  #include <output>
+  #include <legacy/fog-fs>
+
+  in vec3 v_position;
+  uniform samplerCube mainTexture;
+  
+
+  uniform Constant {
+    vec4 mainColor;
+  };
+
+  vec4 frag () {
+    vec4 col = texture(mainTexture, v_position);
+    return col;
+  }
+}%

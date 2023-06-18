@@ -1,0 +1,150 @@
+// Effect Syntax Guide: https://docs.cocos.com/creator/manual/zh/shader/index.html
+
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes:
+      - vert: general-vs:vert # builtin header
+        frag: lit-fs:frag
+        properties: &props
+          mainColor:                        { value: [1.0, 1.0, 1.0, 1.0], linear: true, editor: { type: color } }
+          mainTexture:                      { value: grey}
+      - vert: general-vs:vert # builtin header
+        frag: forward-fs:frag
+        phase: forward-add
+        properties: *props
+        embeddedMacros: { CC_FORWARD_ADD: true }
+        depthStencilState:
+          depthFunc: equal
+          depthTest: true
+          depthWrite: false
+        blendState:
+          targets:
+          - blend: true
+            blendSrc: one
+            blendDst: one
+            blendSrcAlpha: zero
+            blendDstAlpha: one
+      - vert: shadow-caster-vs:vert
+        frag: shadow-caster-fs:frag
+        phase: shadow-caster
+        rasterizerState:
+          cullMode: front
+  - name: transparent
+    passes:
+      - vert: general-vs:vert
+        frag: lit-fs:frag
+        properties: *props
+        depthStencilState:
+          depthTest: true
+          depthWrite: false
+        blendState:
+          targets:
+          - blend: true
+            blendSrc: src_alpha
+            blendDst: one_minus_src_alpha
+            blendDstAlpha: one_minus_src_alpha
+}%
+
+CCProgram lit-fs %{
+  precision highp float;
+
+  #include <legacy/fog-fs>
+  #include <legacy/output>
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/functionalities/shadow-map>
+
+  in vec2 v_uv;
+  in vec3 v_position;
+  in vec3 v_normal;
+  in vec4 v_shadowPos; // 着色时候片元点，相对于光源投影的阴影坐标;
+
+  uniform sampler2D mainTexture;
+
+  uniform Constant {
+    vec4 mainColor;
+  };
+
+  vec4 frag () {
+    vec3 LD = normalize(-cc_mainLitDir.xyz);
+    vec3 N = v_normal.xyz;
+    vec4 col = max(dot(LD,N),0.2) * cc_mainLitColor * mainColor * texture(mainTexture,v_uv) ;
+
+    vec3 N = normalize(v_normal);
+    vec3 L = normalize(-cc_mainLitDir.xyz);
+    float NL = max(dot(N, L), 0.001);
+
+    CC_SHADOW_FACTOR_BASE(col, NL, v_shadowPos, L, N);
+
+    CC_APPLY_FOG(col, v_position);
+    return CCFragOutput(col);
+  }
+}%
+
+CCProgram forward-fs %{
+  precision highp float;
+
+  #include <legacy/fog-fs>
+  #include <legacy/output>
+  #include <builtin/uniforms/cc-global>
+  #include <cc-forward-light>
+
+  in vec2 v_uv;
+
+
+  uniform sampler2D mainTexture;
+
+  uniform Constant {
+    vec4 mainColor;
+  };
+
+  vec4 frag () {
+    vec4 col =  cc_lightColor[0] * mainColor * texture(mainTexture,v_uv);
+
+    CC_APPLY_FOG(col);
+    return CCFragOutput(col);
+  }
+}%
+
+CCProgram shadow-caster-vs %{
+  precision highp float;
+  #include <input-standard>
+  #include <builtin/functionalities/world-transform>
+
+  #include <cc-shadow>
+
+
+  out vec2 v_uv;
+  out vec2 v_uv1;
+  out vec4 v_worldPos;
+
+  out float v_clip_depth;
+
+  vec4 vert () {
+
+    mat4 matWorld, matWorldIT;
+    CCGetWorldMatrixFull(matWorld, matWorldIT);
+
+    v_worldPos = matWorld * vec4(a_position, 1);
+    vec4 clipPos = cc_matLightViewProj * v_worldPos;
+
+    v_clip_depth = clipPos.z / clipPos.w * 0.5 + 0.5;
+
+    return vec4(1.0,1.0,1.0,1.0);
+  }
+}%
+
+CCProgram shadow-caster-fs %{
+  precision highp float;
+  #include <packing>
+  #include <cc-shadow>
+
+  in vec2 v_uv;
+  in vec2 v_uv1;
+  in vec4 v_worldPos;
+  in float v_clip_depth; // 每个片元的深度信息
+
+  vec4 frag () {
+    return vec4(1.0, 1.0, 1.0, 1.0);
+  }
+}%

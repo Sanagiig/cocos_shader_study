@@ -1,0 +1,41 @@
+{
+  "ver": "1.0.25",
+  "importer": "image",
+  "imported": true,
+  "uuid": "11506017-0c0f-4308-a4c0-ba29b1b860b1",
+  "files": [
+    ".jpg",
+    ".json"
+  ],
+  "subMetas": {
+    "3c318": {
+      "importer": "texture",
+      "uuid": "11506017-0c0f-4308-a4c0-ba29b1b860b1@3c318",
+      "displayName": "GRANDEB2",
+      "id": "3c318",
+      "name": "normalMap",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "11506017-0c0f-4308-a4c0-ba29b1b860b1"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "hasAlpha": false,
+    "type": "normal map",
+    "redirect": "11506017-0c0f-4308-a4c0-ba29b1b860b1@3c318",
+    "fixAlphaTransparencyArtifacts": false
+  }
+}

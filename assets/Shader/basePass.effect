@@ -1,0 +1,94 @@
+// Effect Syntax Guide: https://docs.cocos.com/creator/manual/zh/shader/index.html
+
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes:
+      - vert: general-vs:vert # builtin header
+        frag: lit-fs:frag
+        properties: &props
+          mainColor:                        { value: [1.0, 1.0, 1.0, 1.0], linear: true, editor: { type: color } }
+          mainTexture:                      { value: grey}
+      - vert: general-vs:vert # builtin header
+        frag: forward-fs:frag
+        phase: forward-add
+        properties: *props
+        embeddedMacros: { CC_FORWARD_ADD: true }
+        depthStencilState:
+          depthFunc: equal
+          depthTest: true
+          depthWrite: false
+        blendState:
+          targets:
+          - blend: true
+            blendSrc: one
+            blendDst: one
+            blendSrcAlpha: zero
+            blendDstAlpha: one
+  - name: transparent
+    passes:
+      - vert: general-vs:vert
+        frag: lit-fs:frag
+        properties: *props
+        depthStencilState:
+          depthTest: true
+          depthWrite: false
+        blendState:
+          targets:
+          - blend: true
+            blendSrc: src_alpha
+            blendDst: one_minus_src_alpha
+            blendDstAlpha: one_minus_src_alpha
+}%
+
+CCProgram lit-fs %{
+  precision highp float;
+
+  #include <legacy/fog-fs>
+  #include <legacy/output>
+  #include <builtin/uniforms/cc-global>
+
+  in vec2 v_uv;
+  in vec3 v_position;
+  in vec3 v_normal;
+
+  uniform sampler2D mainTexture;
+
+  uniform Constant {
+    vec4 mainColor;
+  };
+
+  vec4 frag () {
+    vec3 LD = normalize(-cc_mainLitDir.xyz);
+    vec3 N = v_normal.xyz;
+    vec4 col = max(dot(LD,N),0.2) * cc_mainLitColor * mainColor * texture(mainTexture,v_uv) ;
+
+    CC_APPLY_FOG(col, v_position);
+    return CCFragOutput(col);
+  }
+}%
+
+CCProgram forward-fs %{
+  precision highp float;
+
+  #include <legacy/fog-fs>
+  #include <legacy/output>
+  #include <builtin/uniforms/cc-global>
+  #include <cc-forward-light>
+
+  in vec2 v_uv;
+
+
+  uniform sampler2D mainTexture;
+
+  uniform Constant {
+    vec4 mainColor;
+  };
+
+  vec4 frag () {
+    vec4 col =  cc_lightColor[0] * mainColor * texture(mainTexture,v_uv);
+
+    CC_APPLY_FOG(col);
+    return CCFragOutput(col);
+  }
+}%

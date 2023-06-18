@@ -1,0 +1,41 @@
+{
+  "ver": "1.0.25",
+  "importer": "image",
+  "imported": true,
+  "uuid": "2ec35d8e-503a-48f8-a7ec-25af673dd3d1",
+  "files": [
+    ".jpg",
+    ".json"
+  ],
+  "subMetas": {
+    "3c318": {
+      "importer": "texture",
+      "uuid": "2ec35d8e-503a-48f8-a7ec-25af673dd3d1@3c318",
+      "displayName": "GRANDECO",
+      "id": "3c318",
+      "name": "normalMap",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "2ec35d8e-503a-48f8-a7ec-25af673dd3d1"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "hasAlpha": false,
+    "type": "normal map",
+    "redirect": "2ec35d8e-503a-48f8-a7ec-25af673dd3d1@3c318",
+    "fixAlphaTransparencyArtifacts": false
+  }
+}
